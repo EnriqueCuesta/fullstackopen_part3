@@ -9,7 +9,7 @@ app.use(express.json())
 app.use(cors())
 
 
-morgan.token('postContent', function (req, res) { return req.method=='POST'?JSON.stringify(req.body):'' })
+morgan.token('postContent', function (req) { return req.method == 'POST' ? JSON.stringify(req.body) : '' })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :postContent'))
 
 app.get('/api/persons', (request, response) => {
@@ -23,7 +23,7 @@ app.post('/api/persons', (request, response, next) => {
   if (person.name && person.number) {
     Person.findOne({ name: person.name }).then(p => {
       if (p) {
-        return response.status(400).json({ 
+        return response.status(400).json({
           error: 'name must be unique'
         })
       } else {
@@ -32,21 +32,21 @@ app.post('/api/persons', (request, response, next) => {
         const newPerson = new Person({
           name: person.name,
           number: person.number,
-          id : Math.round(Math.random()*(10**13))
+          id: Math.round(Math.random() * (10 ** 13))
         })
-    
+
         newPerson.save()
-        .then(result => {
-          console.log(`added ${newPerson.name} number ${newPerson.number} to phonebook`)
-          Person.find({}).then(persons => {
-            response.json(persons)
+          .then(() => {
+            console.log(`added ${newPerson.name} number ${newPerson.number} to phonebook`)
+            Person.find({}).then(persons => {
+              response.json(persons)
+            })
           })
-        })
-        .catch(error => next(error))
+          .catch(error => next(error))
       }
     })
   } else {
-    return response.status(400).json({ 
+    return response.status(400).json({
       error: 'name or number is missing'
     })
   }
@@ -54,35 +54,35 @@ app.post('/api/persons', (request, response, next) => {
 
 app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
-  .then(person => {
-    if (person) {
-      response.json(person)
-    } else {
-      response.status(404).end() 
-    }
-  })
-  .catch(error => next(error))
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-  Person.findByIdAndUpdate(request.params.id, {name:request.body.name, number:request.body.number}, { new: true })
-  .then(person => {
-    if (person) {
-      response.json(person)
-    } else {
-      response.status(404).end() 
-    }
-  })
-  .catch(error => next(error))
+  Person.findByIdAndUpdate(request.params.id, { name: request.body.name, number: request.body.number }, { new: true })
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-  .then(person => {
-    console.log(`deleted ${person.name} number ${person.number} from phonebook`)
-    response.status(204).end()
-  })
-  .catch(error => next(error))
+    .then(person => {
+      console.log(`deleted ${person.name} number ${person.number} from phonebook`)
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 app.get('/info', (request, response) => {
